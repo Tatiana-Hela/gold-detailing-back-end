@@ -1,50 +1,50 @@
 const express = require("express");
-const bodyParser = require("body-parser");
-const axios = require("axios");
 const cors = require("cors");
+const bodyParser = require("body-parser");
 
-const app = express();
+const twilio = require("twilio");
+
 const port = 3000;
-
-app.use(bodyParser.urlencoded({ extended: true }));
+const app = express();
 app.use(bodyParser.json());
 
-// Разрешить все запросы с любого источника
-app.use(cors());
+const allowedOrigins = ["http://localhost:1234", "http://golddetailing.com.ua"];
 
-// Параметры для Ringostat API
-const ringostatAPIKey = "YcQQFGXvVVzbUku49z0LsAR6L59r4TOK";
-const ringostatEndpoint = "https://api.ringostat.net/a/v2";
-
-app.post("/call-order", (req, res) => {
-  const { name, phoneNumber } = req.body;
-
-  // Создание звонка в Ringostat API
-  axios({
-    method: "post",
-    url: `${ringostatEndpoint}/calltracking/callback`,
-    headers: {
-      "Content-Type": "application/json",
-      "auth-key": ringostatAPIKey,
-    },
-    data: {
-      name: name,
-      phone: phoneNumber,
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
     },
   })
-    .then((ringostatResponse) => {
-      console.log("Звонок успешно создан:", ringostatResponse.data);
-      res.status(200).json({
-        message: "Ваша заявка на заказ звонка была успешно принята.",
-      });
+);
+
+const accountSid = "AC53fcb5cf064255c2f9802bb3e059b2b9";
+const authToken = "3344227fbe0c3a13f7ec64cff43d63bf";
+const client = new twilio(accountSid, authToken);
+
+app.post("/submit-form", (req, res) => {
+  const name = req.body.name;
+  const phone = req.body.phone;
+  const message = req.body.message;
+
+  // Валидация данных (по желанию)
+  // ...
+
+  // Отправка SMS через Twilio
+  client.messages
+    .create({
+      body: `Заявка от ${name}. Номер телефона: ${phone}. Сообщение: ${message}`,
+      to: "+380683835128", // Замените на номер получателя
+      from: "+12058946890", // Замените на ваш Twilio номер
     })
-    .catch((error) => {
-      console.error("Ошибка при создании звонка:", error);
-      res.status(500).json({
-        error:
-          "Возникла ошибка при создании звонка. Пожалуйста, попробуйте еще раз.",
-      });
-    });
+    .then((message) => console.log(message.sid))
+    .catch((error) => console.error(error));
+
+  res.status(200).json({ message: "Заявка успешно отправлена" });
 });
 
 app.listen(port, () => {
