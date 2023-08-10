@@ -24,7 +24,7 @@ app.use(
 // const { PORT, AUTH_TOKEN, ACCOUNT_SID } = process.env;
 
 const accountSid = "AC53fcb5cf064255c2f9802bb3e059b2b9";
-const authToken = "3344227fbe0c3a13f7ec64cff43d63bf";
+const authToken = "5746c5a80cc12927662a2b5d2e5e0ed4";
 const client = new twilio(accountSid, authToken);
 
 app.post("/submit-form", (req, res) => {
