@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+require("dotenv").config();
 
 const twilio = require("twilio");
 
@@ -21,10 +22,10 @@ app.use(
   })
 );
 
-// const { PORT, AUTH_TOKEN, ACCOUNT_SID } = process.env;
+const { PORT, AUTH_TOKEN, ACCOUNT_SID } = process.env;
 
-const accountSid = "AC53fcb5cf064255c2f9802bb3e059b2b9";
-const authToken = "5746c5a80cc12927662a2b5d2e5e0ed4";
+const accountSid = ACCOUNT_SID;
+const authToken = AUTH_TOKEN;
 const client = new twilio(accountSid, authToken);
 
 app.post("/submit-form", (req, res) => {
@@ -48,6 +49,6 @@ app.post("/submit-form", (req, res) => {
   res.status(200).json({ message: "Заявка успешно отправлена" });
 });
 
-app.listen(3000, () => {
-  console.log(`Сервер запущен на порту ${3000}`);
+app.listen(PORT, () => {
+  console.log(`Сервер запущен на порту ${PORT}`);
 });
