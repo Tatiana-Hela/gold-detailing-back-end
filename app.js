@@ -2,8 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 require("dotenv").config();
-
 const twilio = require("twilio");
+const Joi = require("joi"); // Подключаем библиотеку joi
 
 const app = express();
 app.use(bodyParser.json());
@@ -28,18 +28,30 @@ const accountSid = ACCOUNT_SID;
 const authToken = AUTH_TOKEN;
 const client = new twilio(accountSid, authToken);
 
+// Определяем схему для валидации данных
+const schema = Joi.object({
+  name: Joi.string().min(2).required(),
+  phone: Joi.string()
+    .pattern(/^\+?\d{10,13}$/)
+    .required(),
+  message: Joi.string().allow("").optional(),
+});
+
 app.post("/submit-form", (req, res) => {
+  const { error } = schema.validate(req.body);
+
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
+
   const name = req.body.name;
   const phone = req.body.phone;
   const message = req.body.message;
 
-  // Валидация данных (по желанию)
-  // ...
-
   // Отправка SMS через Twilio
   client.messages
     .create({
-      body: `Заявка от ${name}. Номер телефона: ${phone}. Сообщение: ${message}`,
+      body: `Ви отримали заявку на консультацію від ${name}. Номер телефона: ${phone}. Додаткова інформація: ${message}. Будь ласка зв'яжіться з клієнтом впродовж 5 хвилин.`,
       to: "+380683835128", // Замените на номер получателя
       from: "+12058946890", // Замените на ваш Twilio номер
     })
