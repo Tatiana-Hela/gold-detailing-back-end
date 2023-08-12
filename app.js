@@ -52,7 +52,7 @@ app.post("/submit-form", (req, res) => {
   client.messages
     .create({
       body: ` ${name}, ${phone} - Повідомлення від клієнта: ${message}. `,
-      to: "+380683835128", // Замените на номер получателя
+      to: "+380733808808", // Замените на номер получателя
       from: "+12058946890", // Замените на ваш Twilio номер
     })
     .then((message) => console.log(message.sid))
