@@ -8,22 +8,7 @@ const Joi = require("joi"); // Подключаем библиотеку joi
 const app = express();
 app.use(bodyParser.json());
 
-const allowedOrigins = [
-  "http://localhost:1234",
-  "https://www.golddetailing.com.ua/",
-];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-  })
-);
+app.use(cors());
 
 const { PORT, AUTH_TOKEN, ACCOUNT_SID } = process.env;
 
