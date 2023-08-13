@@ -10,7 +10,7 @@ app.use(bodyParser.json());
 
 const allowedOrigins = [
   "http://localhost:1234",
-  "https://golddetailing.com.ua",
+  "https://www.golddetailing.com.ua/",
 ];
 
 app.use(
