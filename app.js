@@ -1,52 +1,56 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const axios = require("axios");
 require("dotenv").config();
-const twilio = require("twilio");
-const Joi = require("joi"); // Подключаем библиотеку joi
 
 const app = express();
 app.use(bodyParser.json());
 
 app.use(cors());
 
-const { PORT, AUTH_TOKEN, ACCOUNT_SID } = process.env;
+const { PORT, SMSClubToken } = process.env;
+const SMSClubApiUrl = "https://im.smsclub.mobi";
 
-const accountSid = ACCOUNT_SID;
-const authToken = AUTH_TOKEN;
-const client = new twilio(accountSid, authToken);
+const yourNumber = ["+380683835128"];
 
-// Определяем схему для валидации данных
-const schema = Joi.object({
-  name: Joi.string().min(2).required(),
-  phone: Joi.string()
-    .pattern(/^\+?\d{10,13}$/)
-    .required(),
-  message: Joi.string().allow("").optional(),
-});
+app.post("/submit-form", async (req, res) => {
+  const { message } = req.body;
 
-app.post("/submit-form", (req, res) => {
-  const { error } = schema.validate(req.body);
+  console.log("Request data:", req.body);
+  // Отправка SMS через API SMSClub
+  try {
+    const response = await axios.post(
+      `${SMSClubApiUrl}/sms/send`,
+      {
+        src_addr: "Shop Zakaz",
+        phone: yourNumber, // Ваш номер
+        message: message,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${SMSClubToken}`,
+        },
+      }
+    );
+    console.log("SMS response:", response.data);
 
-  if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+    if (response.data && response.data.success_request) {
+      res.status(200).json({ message: "Заявка успішно відправлена" }); // Відправляємо статус 200 OK
+    } else {
+      console.log("SMSClub API Error:", response.data);
+      res.status(500).json({ error: "Помилка при відправці SMS" }); // Якщо помилка в SMSClub API
+    }
+  } catch (error) {
+    console.error("Error:", error);
+
+    if (error.response) {
+      console.error("Response status:", error.response.status);
+      console.error("Response data:", error.response.data);
+    }
+
+    res.status(500).json({ error: "Помилка при відправці SMS" }); // Якщо інша помилка
   }
-
-  const name = req.body.name;
-  const phone = req.body.phone;
-  const message = req.body.message;
-
-  // Отправка SMS через Twilio
-  client.messages
-    .create({
-      body: ` ${name}, ${phone} - Повідомлення від клієнта: ${message}. `,
-      to: "+380683835128", // Замените на номер получателя
-      from: "+12058946890", // Замените на ваш Twilio номер
-    })
-    .then((message) => console.log(message.sid))
-    .catch((error) => console.error(error));
-
-  res.status(200).json({ message: "Заявка успешно отправлена" });
 });
 
 app.listen(PORT, () => {
