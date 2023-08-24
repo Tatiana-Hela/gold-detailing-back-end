@@ -12,7 +12,7 @@ app.use(cors());
 const { PORT, SMSClubToken } = process.env;
 const SMSClubApiUrl = "https://im.smsclub.mobi";
 
-const yourNumber = ["+380683835128"]; /// "+380631183012"
+const yourNumber = ["+380683835128", "+380631183012"];
 
 app.post("/submit-form", async (req, res) => {
   const { message } = req.body;
